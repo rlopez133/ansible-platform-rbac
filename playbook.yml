@@ -1,0 +1,77 @@
+---
+- name: Ansible RBAC Playbook
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - ./vars/aap.yml
+    - ./vars/enterprise-rbac.yml
+
+  tasks:
+    - name: "Create org"
+      ansible.platform.organization:
+        name: "{{ rbac_config.organization.name }}"
+        description: "{{ rbac_config.organization.description }}"
+        aap_hostname: "{{ aap_hostname }}"
+        aap_token: "{{ aap_token }}"
+        aap_validate_certs: "{{ aap_validate_certs }}"
+
+    - name: "Create Custom Role"
+      ansible.platform.role_definition:
+        name: "{{ item.name }}"
+        description: "{{ item.description }}"
+        content_type: "{{ item.content_type }}"
+        permissions: "{{ item.permissions }}"
+        state: present
+        aap_hostname: "{{ aap_hostname }}"
+        aap_token: "{{ aap_token }}"
+        aap_validate_certs: "{{ aap_validate_certs }}"
+      loop: "{{ rbac_config.custom_roles | default([]) }}"
+
+    - name: "Create Team"
+      ansible.platform.team:
+        name: "{{ item.name }}"
+        organization: "{{ rbac_config.organization.name }}"
+        description: "{{ item.description }}"
+        state: present
+        aap_hostname: "{{ aap_hostname }}"
+        aap_token: "{{ aap_token }}"
+        aap_validate_certs: "{{ aap_validate_certs }}"
+      loop: "{{ rbac_config.teams | default([]) }}"
+
+    - name: "Create User"
+      ansible.platform.user:
+        username: "{{ item.username }}"
+        password: "{{ item.password }}"
+        email: "{{ item.email }}"
+        first_name: "{{ item.first_name }}"
+        last_name: "{{ item.last_name }}"
+        is_superuser: false
+        state: present
+        aap_hostname: "{{ aap_hostname }}"
+        aap_token: "{{ aap_token }}"
+        aap_validate_certs: "{{ aap_validate_certs }}"
+      loop: "{{ rbac_config.users | default([]) }}"
+      register: users_results
+
+    - name: "Assign User to Team"
+      ansible.platform.role_user_assignment:
+        role_definition: "Team Member"
+        user: "{{ item.username }}"
+        object_ids: "{{ item.teams | default([]) }}"
+        state: present
+        aap_hostname: "{{ aap_hostname }}"
+        aap_token: "{{ aap_token }}"
+        aap_validate_certs: "{{ aap_validate_certs }}"
+      loop: "{{ rbac_config.users | default([]) }}"
+
+    - name: "Assign Additional Role to User"
+      ansible.platform.role_user_assignment:
+        role_definition: "{{ item.1.role }}"
+        user: "{{ item.0.username }}"
+        object_ids:
+          - "{{ item.1.scope }}"
+        state: present
+        aap_hostname: "{{ aap_hostname }}"
+        aap_token: "{{ aap_token }}"
+        aap_validate_certs: "{{ aap_validate_certs }}"
+      loop: "{{ rbac_config.users | default([]) | subelements('roles', skip_missing=True) }}"
