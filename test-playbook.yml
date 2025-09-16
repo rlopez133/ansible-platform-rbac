@@ -10,3 +10,6 @@
       ansible.platform.organization:
         name: "{{ rbac_config.organization.name }}"
         description: "{{ rbac_config.organization.description }}"
+        controller_host: "{{ lookup('env','CONTROLLER_HOST') }}"
+        controller_oauthtoken: "{{ lookup('env','CONTROLLER_OAUTH_TOKEN') }}"
+        validate_certs: false
