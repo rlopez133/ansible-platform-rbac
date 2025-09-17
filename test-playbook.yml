@@ -10,6 +10,6 @@
       ansible.platform.organization:
         name: "{{ rbac_config.organization.name }}"
         description: "{{ rbac_config.organization.description }}"
-        aap_hostname: "{{ aap_hostname }}"
-        aap_token: "{{ aap_token }}"
-        aap_validate_certs: "{{ aap_validate_certs }}"
+        aap_hostname: "{{ lookup('env','CONTROLLER_HOST') }}"
+        aap_token: "{{ lookup('env','CONTROLLER_OAUTH_TOKEN') }}"
+        aap_validate_certs: "{{ lookup('env','CONTROLLER_VERIFY_SSL') | default(true) | bool }}"
