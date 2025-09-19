@@ -11,9 +11,9 @@
       ansible.platform.organization:
         name: "{{ rbac_config.organization.name }}"
         description: "{{ rbac_config.organization.description }}"
-        aap_hostname: "{{ aap_hostname }}"
-        aap_token: "{{ aap_token }}"
-        aap_validate_certs: "{{ aap_validate_certs }}"
+        aap_hostname: "{{ lookup('env','CONTROLLER_HOST') }}"
+        aap_token: "{{ lookup('env','CONTROLLER_OAUTH_TOKEN') }}"
+        aap_validate_certs: "{{ lookup('env','CONTROLLER_VERIFY_SSL') | default(true) | bool }}"
 
     - name: "Create Custom Role"
       ansible.platform.role_definition:
@@ -22,9 +22,9 @@
         content_type: "{{ item.content_type }}"
         permissions: "{{ item.permissions }}"
         state: present
-        aap_hostname: "{{ aap_hostname }}"
-        aap_token: "{{ aap_token }}"
-        aap_validate_certs: "{{ aap_validate_certs }}"
+        aap_hostname: "{{ lookup('env','CONTROLLER_HOST') }}"
+        aap_token: "{{ lookup('env','CONTROLLER_OAUTH_TOKEN') }}"
+        aap_validate_certs: "{{ lookup('env','CONTROLLER_VERIFY_SSL') | default(true) | bool }}"
       loop: "{{ rbac_config.custom_roles | default([]) }}"
 
     - name: "Create Team"
@@ -33,9 +33,9 @@
         organization: "{{ rbac_config.organization.name }}"
         description: "{{ item.description }}"
         state: present
-        aap_hostname: "{{ aap_hostname }}"
-        aap_token: "{{ aap_token }}"
-        aap_validate_certs: "{{ aap_validate_certs }}"
+        aap_hostname: "{{ lookup('env','CONTROLLER_HOST') }}"
+        aap_token: "{{ lookup('env','CONTROLLER_OAUTH_TOKEN') }}"
+        aap_validate_certs: "{{ lookup('env','CONTROLLER_VERIFY_SSL') | default(true) | bool }}"
       loop: "{{ rbac_config.teams | default([]) }}"
 
     - name: "Create User"
@@ -47,9 +47,9 @@
         last_name: "{{ item.last_name }}"
         is_superuser: false
         state: present
-        aap_hostname: "{{ aap_hostname }}"
-        aap_token: "{{ aap_token }}"
-        aap_validate_certs: "{{ aap_validate_certs }}"
+        aap_hostname: "{{ lookup('env','CONTROLLER_HOST') }}"
+        aap_token: "{{ lookup('env','CONTROLLER_OAUTH_TOKEN') }}"
+        aap_validate_certs: "{{ lookup('env','CONTROLLER_VERIFY_SSL') | default(true) | bool }}"
       loop: "{{ rbac_config.users | default([]) }}"
       register: users_results
 
@@ -59,9 +59,9 @@
         user: "{{ item.username }}"
         object_ids: "{{ item.teams | default([]) }}"
         state: present
-        aap_hostname: "{{ aap_hostname }}"
-        aap_token: "{{ aap_token }}"
-        aap_validate_certs: "{{ aap_validate_certs }}"
+        aap_hostname: "{{ lookup('env','CONTROLLER_HOST') }}"
+        aap_token: "{{ lookup('env','CONTROLLER_OAUTH_TOKEN') }}"
+        aap_validate_certs: "{{ lookup('env','CONTROLLER_VERIFY_SSL') | default(true) | bool }}"
       loop: "{{ rbac_config.users | default([]) }}"
 
     - name: "Assign Additional Role to User"
@@ -71,7 +71,7 @@
         object_ids:
           - "{{ item.1.scope }}"
         state: present
-        aap_hostname: "{{ aap_hostname }}"
-        aap_token: "{{ aap_token }}"
-        aap_validate_certs: "{{ aap_validate_certs }}"
+        aap_hostname: "{{ lookup('env','CONTROLLER_HOST') }}"
+        aap_token: "{{ lookup('env','CONTROLLER_OAUTH_TOKEN') }}"
+        aap_validate_certs: "{{ lookup('env','CONTROLLER_VERIFY_SSL') | default(true) | bool }}"
       loop: "{{ rbac_config.users | default([]) | subelements('roles', skip_missing=True) }}"
