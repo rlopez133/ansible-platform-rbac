@@ -14,18 +14,6 @@
         aap_token: "{{ lookup('env','CONTROLLER_OAUTH_TOKEN') }}"
         aap_validate_certs: "{{ lookup('env','CONTROLLER_VERIFY_SSL') | default(true) | bool }}"
 
-    - name: "Create Custom Role"
-      ansible.platform.role_definition:
-        name: "{{ item.name }}"
-        description: "{{ item.description }}"
-        content_type: "{{ item.content_type }}"
-        permissions: "{{ item.permissions }}"
-        state: present
-        aap_hostname: "{{ lookup('env','CONTROLLER_HOST') }}"
-        aap_token: "{{ lookup('env','CONTROLLER_OAUTH_TOKEN') }}"
-        aap_validate_certs: "{{ lookup('env','CONTROLLER_VERIFY_SSL') | default(true) | bool }}"
-      loop: "{{ rbac_config.custom_roles | default([]) }}"
-
     - name: "Create Team"
       ansible.platform.team:
         name: "{{ item.name }}"
